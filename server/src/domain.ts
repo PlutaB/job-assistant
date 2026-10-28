@@ -1,0 +1,14 @@
+export type Grade = 'S'|'A'|'B'|'U'|null;
+export const statuses = ['未投','已投','AI测评','笔试','1面','2面','3面','4面','Offer','拒绝'];
+export type Company = { id:string; name:string; englishName?:string; logo?:string; website:string; description:string; notes:string; links:{name:string;url:string}[]; media:string[]; lastSuccess:string|null; lastAttempt?:string; snapshot:{total:number;matched:number}|null; latestTask?:string; snapshotJobIds?:string[]; legacy?:unknown };
+export type Job = {department?:string;manualDepartment?:boolean;ratingFingerprint?:string;id:string;companyId:string;title:string;url:string;officialId:string;location:string;description:string;recruitmentType:string;publishedAt:string|null;firstSeenAt:string;lastVerifiedAt:string|null;active:'open'|'closed'|'unknown';grade:Grade;suggestedGrade:Grade;manualGrade:boolean;reason:string;pendingConditions:string;manual:boolean;status:string;appliedAt:string|null;notes:string;resumeId:string|null;sources:string[];newInTask:string|null;history:{status:string;at:string;source?:string}[];legacy?:unknown};
+export type Task = {id:string;companyId:string;kind:'refresh'|'review';jobId?:string;state:'queued'|'running'|'complete'|'partial'|'failed'|'interrupted';stage:string;createdAt:string;finishedAt?:string;message:string;events:{at:string;stage:string;message:string}[];result?:unknown};
+export const now=()=>new Date().toISOString();
+export const hasApplied=(j:Job)=>!!j.appliedAt;
+export const visible=(j:Job)=>j.grade==='S'||j.grade==='A'||j.grade==='B'||hasApplied(j)||(j.manual&&j.grade===null);
+export const gradeOrder=(j:Job)=>(j.grade===null?3:{S:0,A:1,B:2,U:4}[j.grade]);
+export const isMatch=(j:Job)=>['S','A','B'].includes(j.grade??'');
+export function canonicalUrl(raw:string):string {try {const u=new URL(raw); for(const key of [...u.searchParams.keys()]) if(/^(utm_|sourceToken|source$)/i.test(key))u.searchParams.delete(key); return u.toString().replace(/\/$/,'');}catch{return raw.trim();}}
+export function httpUrl(raw:unknown):string {if(typeof raw!=='string'||raw.length>4000)throw new Error('链接无效');const u=new URL(raw);if(!['http:','https:'].includes(u.protocol)||u.username||u.password)throw new Error('仅支持 HTTP(S) 链接');return u.toString();}
+export function textField(raw:unknown,max=100000):string {if(typeof raw!=='string'||raw.length>max)throw new Error('文字格式无效或过长');return raw;}
+export const newJob=(companyId:string,title:string,url:string):Job=>({id:crypto.randomUUID(),companyId,title,url,officialId:'',location:'',department:'',description:'',recruitmentType:'',publishedAt:null,firstSeenAt:now(),lastVerifiedAt:null,active:'unknown',grade:null,suggestedGrade:null,manualGrade:false,reason:'资料待审核',pendingConditions:'',manual:true,status:'未投',appliedAt:null,notes:'',resumeId:null,sources:url?[url]:[],newInTask:null,history:[]});
